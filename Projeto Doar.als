@@ -11,6 +11,10 @@ sig Abrigo {
 	animais : set Animal
 }
 
+// TEMPO
+open util/ordering[Tempo] as to
+sig Tempo{}
+
 // PESSOAS
 sig Administrador {
 	nomeAdm: one Nome,
@@ -36,9 +40,10 @@ sig Endereco{}
 sig Idade{}
 
 
+
 //ANIMAIS
 
-sig Animal {
+abstract sig Animal {
 }
 
 sig Cachorro extends Animal {
@@ -50,7 +55,7 @@ sig Gato extends Animal {
 sig Passaro extends Animal {
 }
 
-sig Raca{}
+abstract sig Raca{}
 
 sig RacaCachorro extends Raca{}
 
