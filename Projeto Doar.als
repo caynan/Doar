@@ -30,6 +30,7 @@ sig Funcionario {
 sig Cliente {
 	nomeCliente: one Nome,
 	endCliente: one Endereco,
+	animaisAdotados: set Animal,
 	idadeCliente: Int
 }
 
@@ -105,7 +106,7 @@ abstract sig removeCliente extends clienteEvent {} {
 }
 
 fact traceCliente {
-	init[to/first]
+	init[first]
 	all pre: Tempo-last | let pos = pre.next |
 		some e: clienteEvent {
 			e.t = pre and e.t' = pos
@@ -115,6 +116,11 @@ fact traceCliente {
 }
 
 // PREDICADOS e FUNCOES
+pred show[]{
+	some Cliente
+}
+
+run show for 3
 
 // ASSERTS
 assert todoAbrigoTemUmAdministrador {
@@ -123,9 +129,6 @@ assert todoAbrigoTemUmAdministrador {
 
 check todoAbrigoTemUmAdministrador for 5
 
-pred show[]{}
-
-run show for 3 but 2 Cliente
 
 //assinaturas (conjuntos e relações)
 //fatos (invariantes)
