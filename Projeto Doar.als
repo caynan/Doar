@@ -1,8 +1,8 @@
 module doar
 
 // TEMPO
-open util/ordering[Tempo] as to
-sig Tempo{}
+open util/ordering[Time] as to
+sig Time{}
 
 //SISTEMA
 sig SistemaDoar {
@@ -12,8 +12,8 @@ sig SistemaDoar {
 sig Abrigo {
 	administracao : one Administrador,
 	funcionarios : set Funcionario,
-	animais : set Animal -> Tempo,
-	clientes: set Cliente -> Tempo
+	animaisDoAbrigo : set Animal -> Time,
+	clientes: set Cliente -> Time
 }
 
 // PESSOAS
@@ -30,7 +30,7 @@ sig Funcionario {
 sig Cliente {
 	nomeCliente: one Nome,
 	endCliente: one Endereco,
-	animaisAdotados: set Animal,
+	animaisAdotados: set Animal -> Time,
 	idadeCliente: Int
 }
 
@@ -39,20 +39,17 @@ sig Nome {}
 
 sig Endereco{}
 
-
 //ANIMAIS
 
 abstract sig Animal {
+	raca: one Raca
 }
 
-sig Cachorro extends Animal {
-}
+sig Cachorro extends Animal {}
 
-sig Gato extends Animal {
-}
+sig Gato extends Animal {}
 
-sig Passaro extends Animal {
-}
+sig Passaro extends Animal {}
 
 abstract sig Raca{}
 
@@ -67,60 +64,59 @@ fact fatosSistema {
 	#SistemaDoar = 1
 	#Abrigo = 3
 	all s: SistemaDoar | #s.abrigos = 3
-	all a: Abrigo | 	#a.animais =< 100 
-//	all a:Abrigo && all an1,an2: a.animais | an1 != an2
+	all a: Abrigo | 	#a.animaisDoAbrigo =< 100 // nao aceita
 }
 
-fact fatosPessoas {}
+fact fatosPessoas {
+	// o cliente disse q era ateh 100 anos
+	//all c : Cliente | c.idadeCliente >= 16 and c.idadeCliente <= 100 
+}
 
 fact fatosAnimais {
 	Animal = Cachorro + Gato + Passaro // animal = cachorro U gato U passaro
+	all a:Animal | one a.~animaisDoAbrigo //nao aceita, queremos dizer que um animal so esta em um abrigo
+	all a:Animal | one a.raca
 }
 
-fact idadeCliente {
-	all c : Cliente |
-	c.idadeCliente >= 18 and
-	c.idadeCliente <= 120
-} 
-
-// Eventos com Cliente
-
-pred init[t:Tempo] {
-	no (Abrigo.clientes).t
-}
-
-abstract sig clienteEvent {
-	a : Abrigo,
-	c : Cliente,
-	t, t' : Tempo 
-}
-
-abstract sig addCliente extends clienteEvent {} {
-	c !in (a.clientes).t
-	(a.clientes).t' =  (a.clientes).t + c
-} 
-
-abstract sig removeCliente extends clienteEvent {} {
-	c in (a.clientes).t
-	(a.clientes).t' = (a.clientes).t - c
-}
-
-fact traceCliente {
+fact traces {
 	init[first]
-	all pre: Tempo-last | let pos = pre.next |
-		some e: clienteEvent {
-			e.t = pre and e.t' = pos
-			((e in addCliente) or
-			   (e in removeCliente))
-		} 
+	all pre: Time-last | let pos = pre.next |
+		some ab: Abrigo, an: Animal, c: Cliente |
+				addAnimalAbrigo[ab, an, pre, pos] or
+				addCliente[ab, c, pre, pos] or
+				doaAnimal[ab, an, c, pre, pos] 
+}
+
+// Logica temporal
+
+pred init[t: Time] {
+	one SistemaDoar
+	#Abrigo = 3
+	#Administrador = 3
+	#Funcionario = 12 //nao aceita
+	no (Abrigo.clientes).t
+	no (Abrigo.animaisDoAbrigo).t
+}
+
+pred addAnimalAbrigo[ab: Abrigo, an: Animal, t, t': Time] {
+	an !in (ab.animaisDoAbrigo).t
+	(ab.animaisDoAbrigo).t' = (ab.animaisDoAbrigo).t + an
+} 
+
+pred addCliente[ab: Abrigo, c: Cliente, t, t': Time] {
+	c !in (ab.clientes).t
+	(ab.clientes).t' = (ab.clientes).t + c
+}
+
+pred doaAnimal[ab: Abrigo, an: Animal, c: Cliente, t, t': Time] {
+	an in (ab.animaisDoAbrigo).t
+	c in (ab.clientes).t
+	(ab.animaisDoAbrigo).t' = (ab.animaisDoAbrigo).t - an
+	(c.animaisAdotados).t' = (c.animaisAdotados).t + an
 }
 
 // PREDICADOS e FUNCOES
-pred show[]{
-	some Cliente
-}
 
-run show for 3
 
 // ASSERTS
 assert todoAbrigoTemUmAdministrador {
@@ -129,6 +125,10 @@ assert todoAbrigoTemUmAdministrador {
 
 check todoAbrigoTemUmAdministrador for 5
 
+// main
+pred show[]{}
+
+run show for 5 but 10 Animal
 
 //assinaturas (conjuntos e relações)
 //fatos (invariantes)
