@@ -31,9 +31,10 @@ sig Cliente {
 	nomeCliente: one Nome,
 	endCliente: one Endereco,
 	animaisAdotados: set Animal -> Time,
-	idadeCliente: Int
+	idadeCliente: Idade
 }
 
+sig Idade{}
 
 sig Nome {}
 
@@ -77,9 +78,7 @@ fact {
 	all n: Node | let w = n.(n.adj) | some w => int[w] = 0
 }*/
 
-fact fatosPessoas {
-	all c : Cliente | c.idadeCliente >= 16 // c.idadeCliente <= 100 
-}
+fact fatosPessoas {}
 
 fact fatosAnimais {
 	Animal = Cachorro + Gato + Passaro // animal = cachorro U gato U passaro
@@ -88,6 +87,17 @@ fact fatosAnimais {
 	all ga: Gato | one ga.racaGato
 	all pa: Passaro | one pa.racaPassaro
 }
+
+/*
+// um animal deve estar em um abrigo, nao deve existir o mesmo animal em abrigos diferentes
+fact animalUnico {
+	all ab1: Abrigo, ab2: Abrigo, an: Animal | cadaAnimalEmAbrigoDiferente[ab1, ab2, an]
+}
+
+pred cadaAnimalEmAbrigoDiferente[ab1: Abrigo, ab2: Abrigo, an: Animal]{
+	(ab1 != ab2) => (an in ab1.animaisDoAbrigo => an !in ab2.animaisDoAbrigo)
+}
+*/
 
 fact traces {
 	init[first]
