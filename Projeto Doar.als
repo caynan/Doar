@@ -88,16 +88,15 @@ fact fatosAnimais {
 	all pa: Passaro | one pa.racaPassaro
 }
 
-/*
 // um animal deve estar em um abrigo, nao deve existir o mesmo animal em abrigos diferentes
 fact animalUnico {
-	all ab1: Abrigo, ab2: Abrigo, an: Animal | cadaAnimalEmAbrigoDiferente[ab1, ab2, an]
+	all ab1: Abrigo, ab2: Abrigo, an: Animal, t: Time | cadaAnimalEmAbrigoDiferente[ab1, ab2, an, t]
 }
 
-pred cadaAnimalEmAbrigoDiferente[ab1: Abrigo, ab2: Abrigo, an: Animal]{
-	(ab1 != ab2) => (an in ab1.animaisDoAbrigo => an !in ab2.animaisDoAbrigo)
+pred cadaAnimalEmAbrigoDiferente[ab1: Abrigo, ab2: Abrigo, an: Animal, t: Time]{
+	(ab1 != ab2) => (an in (ab1.animaisDoAbrigo).t => an !in (ab2.animaisDoAbrigo).t)
 }
-*/
+
 
 fact traces {
 	init[first]
