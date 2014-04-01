@@ -41,15 +41,19 @@ sig Endereco{}
 
 //ANIMAIS
 
-abstract sig Animal {
-	raca: one Raca
+abstract sig Animal {}
+
+sig Cachorro extends Animal {
+		racaCachorro: one RacaCachorro
 }
 
-sig Cachorro extends Animal {}
+sig Gato extends Animal {
+	racaGato: one RacaGato
+}
 
-sig Gato extends Animal {}
-
-sig Passaro extends Animal {}
+sig Passaro extends Animal {
+	racaPassaro: one RacaPassaro
+}
 
 abstract sig Raca{}
 
@@ -63,19 +67,26 @@ sig RacaPassaro extends Raca{}
 fact fatosSistema {
 	#SistemaDoar = 1
 	#Abrigo = 3
+	all ab: Abrigo | #ab.funcionarios > 0 && #ab.funcionarios < 4
 	all s: SistemaDoar | #s.abrigos = 3
-	all a: Abrigo | 	#a.animaisDoAbrigo =< 100 // nao aceita
+	all a: Abrigo | 	#a.animaisDoAbrigo =< 4 // nao aceita
 }
 
+/*sig Node {adj: Node -> lone Int}
+fact {
+	all n: Node | let w = n.(n.adj) | some w => int[w] = 0
+}*/
+
 fact fatosPessoas {
-	// o cliente disse q era ateh 100 anos
-	//all c : Cliente | c.idadeCliente >= 16 and c.idadeCliente <= 100 
+	all c : Cliente | c.idadeCliente >= 16 // c.idadeCliente <= 100 
 }
 
 fact fatosAnimais {
 	Animal = Cachorro + Gato + Passaro // animal = cachorro U gato U passaro
-	all a:Animal | one a.~animaisDoAbrigo //nao aceita, queremos dizer que um animal so esta em um abrigo
-	all a:Animal | one a.raca
+//	all a:Animal,t:Time | one a.~(animaisDoAbrigo.t)
+	all ca: Cachorro | one ca.racaCachorro
+	all ga: Gato | one ga.racaGato
+	all pa: Passaro | one pa.racaPassaro
 }
 
 fact traces {
@@ -93,7 +104,6 @@ pred init[t: Time] {
 	one SistemaDoar
 	#Abrigo = 3
 	#Administrador = 3
-	#Funcionario = 12 //nao aceita
 	no (Abrigo.clientes).t
 	no (Abrigo.animaisDoAbrigo).t
 }
@@ -123,12 +133,16 @@ assert todoAbrigoTemUmAdministrador {
 	all a:Abrigo | one a.administracao
 }
 
+assert todoAbrigoTemPeloMenosUmFuncionario {
+//fazer
+}
+
 check todoAbrigoTemUmAdministrador for 5
 
 // main
 pred show[]{}
 
-run show for 5 but 10 Animal
+run show for 5 but 10 Animal, 6 Funcionario
 
 //assinaturas (conjuntos e relações)
 //fatos (invariantes)
