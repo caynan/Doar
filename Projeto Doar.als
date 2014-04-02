@@ -42,15 +42,15 @@ sig Nome {}
 
 // CAYNAN (Adicionei Bairro e suas instancias)
 sig Endereco{
-	bairro: Bairro
+	bairro: one Bairro
 }
 
 // bairros e suas instancias.
 abstract sig Bairro {}
 
-sig AltoBranco extends Bairro {}
-sig Bodocongo extends Bairro {}
-sig Prata extends Bairro {}
+one sig AltoBranco extends Bairro {}
+one sig Bodocongo extends Bairro {}
+one sig Prata extends Bairro {}
 
 //ANIMAIS
 
