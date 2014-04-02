@@ -142,7 +142,7 @@ fact traces {
 		some ab: Abrigo, an: Animal, c: Cliente |
 				addAnimalAbrigo[ab, an, pre, pos] or
 				addCliente[ab, c, pre, pos] or
-				doaAnimal[ab, an, c, pre, pos] 
+				adotaAnimal[ab, an, c, pre, pos] 
 }
 
 pred init[t: Time] {
