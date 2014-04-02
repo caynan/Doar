@@ -100,15 +100,22 @@ fact fatosAnimais {
 	all pa: Passaro | one pa.racaPassaro
 }
 
-// um animal deve estar em um abrigo, nao deve existir o mesmo animal em abrigos diferentes
+// um animal deve ser unico
 fact animalUnico {
-	all ab1: Abrigo, ab2: Abrigo, an: Animal, t: Time | cadaAnimalEmAbrigoDiferente[ab1, ab2, an, t]
+	all ab1: Abrigo, ab2: Abrigo, cl1: Cliente, cl2: Cliente, an: Animal,  t: Time | 
+		cadaAnimalEmAbrigoDiferente[ab1, ab2, an, t]  and
+		cadaAnimalTemUmUnicoDono[cl1, cl2, an, t]
 }
 
+// Animal deve estar em um unico abrigo.
 pred cadaAnimalEmAbrigoDiferente[ab1: Abrigo, ab2: Abrigo, an: Animal, t: Time]{
 	(ab1 != ab2) => (an in (ab1.animaisDoAbrigo).t => an !in (ab2.animaisDoAbrigo).t)
 }
 
+// Animal deve possuir um unico dono
+pred cadaAnimalTemUmUnicoDono[cl1: Cliente, cl2: Cliente, an: Animal, t: Time]{
+	(cl1 != cl2) => (an in (cl1.animaisAdotados).t => an !in (cl2.animaisAdotados).t)
+}
 // Funcionario deve ser unico por abrigo (um mesmo funcionario n deve estar em dois abrigos)
 fact funcionarioUnico {
 	all ab1: Abrigo, ab2: Abrigo, f:Funcionario | cadaFuncionarioEmAbrigoDiferente[ab1, ab2, f]
