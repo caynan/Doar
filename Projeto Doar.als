@@ -9,6 +9,7 @@ sig SistemaDoar {
 	abrigos: set Abrigo
 }
 
+// CAYNAN (abrigo possui endereco)
 sig Abrigo {
 	administracao : one Administrador,
 	funcionarios : set Funcionario,
@@ -38,6 +39,7 @@ sig Cliente {
 sig Idade{}
 
 sig Nome {}
+
 // CAYNAN (Adicionei Bairro e suas instancias)
 sig Endereco{
 	bairro: Bairro
@@ -109,6 +111,23 @@ pred cadaAnimalEmAbrigoDiferente[ab1: Abrigo, ab2: Abrigo, an: Animal, t: Time]{
 	(ab1 != ab2) => (an in (ab1.animaisDoAbrigo).t => an !in (ab2.animaisDoAbrigo).t)
 }
 
+// Funcionario deve ser unico por abrigo (um mesmo funcionario n deve estar em dois abrigos)
+fact funcionarioUnico {
+	all ab1: Abrigo, ab2: Abrigo, f:Funcionario | cadaFuncionarioEmAbrigoDiferente[ab1, ab2, f]
+}
+
+pred cadaFuncionarioEmAbrigoDiferente[ab1: Abrigo, ab2: Abrigo, f: Funcionario]{
+	(ab1 != ab2) => (f in ab1.funcionarios => f !in ab2.funcionarios)
+}
+
+// Administrador deve ser unico por abrigo (um mesmo administrador, n deve estar em dois abrigos)
+fact AdministradorUnico {
+	all ab1: Abrigo, ab2: Abrigo, ad: Administrador | cadaAdministradorEmAbrigoDiferente[ab1, ab2, ad]
+}
+
+pred cadaAdministradorEmAbrigoDiferente[ab1: Abrigo, ab2: Abrigo, ad: Administrador]{
+	(ab1 != ab2) => (ad in ab1.administracao => ad !in ab2.administracao)
+}
 
 fact traces {
 	init[first]
@@ -158,7 +177,7 @@ assert todoAbrigoTemPeloMenosUmFuncionario {
 	all a:Abrigo | some a.funcionarios
 }
 
-check todoAbrigoTemUmAdministrador for 5
+//check todoAbrigoTemUmAdministrador for 5
 
 // main
 pred show[]{}
