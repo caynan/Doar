@@ -1,4 +1,4 @@
-module doar
+﻿module doar
 
 // TEMPO
 open util/ordering[Time] as to
@@ -159,7 +159,9 @@ pred addCliente[ab: Abrigo, c: Cliente, t, t': Time] {
 
 pred doaAnimal[ab: Abrigo, an: Animal, c: Cliente, t, t': Time] {
 	an in (ab.animaisDoAbrigo).t
+	an in (ab.animaisDoAbrigo).t'
 	c in (ab.clientes).t
+	c in (ab.clientes).t'
 	(c.animaisAdotados).t' = (c.animaisAdotados).t + an
 }
 
