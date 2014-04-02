@@ -9,7 +9,6 @@ sig SistemaDoar {
 	abrigos: set Abrigo
 }
 
-// CAYNAN (abrigo possui endereco)
 sig Abrigo {
 	administracao : one Administrador,
 	funcionarios : set Funcionario,
@@ -40,7 +39,6 @@ sig Idade{}
 
 sig Nome {}
 
-// CAYNAN (Adicionei Bairro e suas instancias)
 sig Endereco{
 	bairro: one Bairro
 }
@@ -101,7 +99,7 @@ fact fatosAnimais {
 	all ga: Gato | one ga.racaGato
 	all pa: Passaro | one pa.racaPassaro
 }
-// CAYNAN (adicionei que animal é unico por abrigo)
+
 // um animal deve estar em um abrigo, nao deve existir o mesmo animal em abrigos diferentes
 fact animalUnico {
 	all ab1: Abrigo, ab2: Abrigo, an: Animal, t: Time | cadaAnimalEmAbrigoDiferente[ab1, ab2, an, t]
@@ -172,7 +170,7 @@ pred doaAnimal[ab: Abrigo, an: Animal, c: Cliente, t, t': Time] {
 assert todoAbrigoTemUmAdministrador {
 	all a:Abrigo | one a.administracao
 }
-// CAYNAN adicionei que todo abrigo tem 1 ou mais funcionarios
+
 assert todoAbrigoTemPeloMenosUmFuncionario {
 	all a:Abrigo | some a.funcionarios
 }
