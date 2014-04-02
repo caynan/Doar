@@ -134,6 +134,8 @@ pred cadaAdministradorEmAbrigoDiferente[ab1: Abrigo, ab2: Abrigo, ad: Administra
 	(ab1 != ab2) => (ad in ab1.administracao => ad !in ab2.administracao)
 }
 
+
+// Logica temporal
 fact traces {
 	init[first]
 	all pre: Time-last | let pos = pre.next |
@@ -143,8 +145,6 @@ fact traces {
 				doaAnimal[ab, an, c, pre, pos] 
 }
 
-// Logica temporal
-
 pred init[t: Time] {
 	one SistemaDoar
 	#Abrigo = 3
@@ -153,17 +153,20 @@ pred init[t: Time] {
 	no (Abrigo.animaisDoAbrigo).t
 }
 
+// Adicionar novo animal ao abrigo
 pred addAnimalAbrigo[ab: Abrigo, an: Animal, t, t': Time] {
 	an !in (ab.animaisDoAbrigo).t
 	(ab.animaisDoAbrigo).t' = (ab.animaisDoAbrigo).t + an
 } 
 
+// Adicionar novo cliente ao abrigo
 pred addCliente[ab: Abrigo, c: Cliente, t, t': Time] {
 	c !in (ab.clientes).t
 	(ab.clientes).t' = (ab.clientes).t + c
 }
 
-pred doaAnimal[ab: Abrigo, an: Animal, c: Cliente, t, t': Time] {
+// Cliente adota animal
+pred adotaAnimal[ab: Abrigo, an: Animal, c: Cliente, t, t': Time] {
 	an in (ab.animaisDoAbrigo).t
 	c in (ab.clientes).t
 	(ab.animaisDoAbrigo).t' = (ab.animaisDoAbrigo).t - an
