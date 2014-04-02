@@ -6,16 +6,21 @@ sig Time{}
 
 //SISTEMA
 sig SistemaDoar {
-	abrigos: set Abrigo
+	abrigos: set Abrigo, 
+	registros: set Registro -> Time,
+	alertas: set Alerta -> Time
 }
 
 sig Abrigo {
 	administracao : one Administrador,
 	funcionarios : set Funcionario,
-	endereco: one Endereco,
 	animaisDoAbrigo : set Animal -> Time,
 	clientes: set Cliente -> Time
 }
+
+sig Registro{}
+
+sig Alerta{}
 
 // PESSOAS
 sig Administrador {
@@ -39,16 +44,7 @@ sig Idade{}
 
 sig Nome {}
 
-sig Endereco{
-	bairro: one Bairro
-}
-
-// bairros e suas instancias.
-abstract sig Bairro {}
-
-one sig AltoBranco extends Bairro {}
-one sig Bodocongo extends Bairro {}
-one sig Prata extends Bairro {}
+sig Endereco{}
 
 //ANIMAIS
 
@@ -82,98 +78,107 @@ fact fatosSistema {
 	#Abrigo = 3
 	all ab: Abrigo | #ab.funcionarios > 0 && #ab.funcionarios < 4
 	all s: SistemaDoar | #s.abrigos = 3
-	all a: Abrigo | 	#a.animaisDoAbrigo =< 4 // nao aceita
+	all a: Abrigo | #a.animaisDoAbrigo =< 7
+	all ab:Abrigo, t:Time | #Alerta <= #getAnimaisSemAbrigo[ab, t]
+//	all rg : Registro, t : Time | one rg.~(registros.t)
+//	all al : Alerta, t : Time | one al.~(alertas.t)
 }
 
-/*sig Node {adj: Node -> lone Int}
-fact {
-	all n: Node | let w = n.(n.adj) | some w => int[w] = 0
-}*/
-
-fact fatosPessoas {}
+fact fatosPessoas {
+	all i : Idade | one i.~idadeCliente
+	all c: Cliente, t: Time | lone c.~(clientes.t)
+	all n: Nome | one n.~nomeAdm || one n.~nomeCliente || one n.~nomeFunc
+	all e: Endereco| one e.~endAdm || one e.~endCliente || one e.~endFunc
+	all f: Funcionario | one f.~funcionarios
+	all a: Administrador | one a.~administracao	
+}
 
 fact fatosAnimais {
 	Animal = Cachorro + Gato + Passaro // animal = cachorro U gato U passaro
-//	all a:Animal,t:Time | one a.~(animaisDoAbrigo.t)
+	all a:Animal,t:Time | 	(lone a.~(animaisDoAbrigo.t) and no(a.~(animaisAdotados.t))) or 
+			(no a.~(animaisDoAbrigo.t) and lone a.~(animaisAdotados.t))
 	all ca: Cachorro | one ca.racaCachorro
 	all ga: Gato | one ga.racaGato
 	all pa: Passaro | one pa.racaPassaro
-}
+	all rc: RacaCachorro | one rc.~racaCachorro
+	all rg: RacaGato | one rg.~racaGato
+	all rp: RacaPassaro | one rp.~racaPassaro
 
-// um animal deve ser unico
-fact animalUnico {
-	all ab1: Abrigo, ab2: Abrigo, cl1: Cliente, cl2: Cliente, an: Animal,  t: Time | 
-		cadaAnimalEmAbrigoDiferente[ab1, ab2, an, t]  and
-		cadaAnimalTemUmUnicoDono[cl1, cl2, an, t]
-}
-
-// Animal deve estar em um unico abrigo.
-pred cadaAnimalEmAbrigoDiferente[ab1: Abrigo, ab2: Abrigo, an: Animal, t: Time]{
-	(ab1 != ab2) => (an in (ab1.animaisDoAbrigo).t => an !in (ab2.animaisDoAbrigo).t)
-}
-
-// Animal deve possuir um unico dono
-pred cadaAnimalTemUmUnicoDono[cl1: Cliente, cl2: Cliente, an: Animal, t: Time]{
-	(cl1 != cl2) => (an in (cl1.animaisAdotados).t => an !in (cl2.animaisAdotados).t)
-}
-// Funcionario deve ser unico por abrigo (um mesmo funcionario n deve estar em dois abrigos)
-fact funcionarioUnico {
-	all ab1: Abrigo, ab2: Abrigo, f:Funcionario | cadaFuncionarioEmAbrigoDiferente[ab1, ab2, f]
-}
-
-pred cadaFuncionarioEmAbrigoDiferente[ab1: Abrigo, ab2: Abrigo, f: Funcionario]{
-	(ab1 != ab2) => (f in ab1.funcionarios => f !in ab2.funcionarios)
-}
-
-// Administrador deve ser unico por abrigo (um mesmo administrador, n deve estar em dois abrigos)
-fact AdministradorUnico {
-	all ab1: Abrigo, ab2: Abrigo, ad: Administrador | cadaAdministradorEmAbrigoDiferente[ab1, ab2, ad]
-}
-
-pred cadaAdministradorEmAbrigoDiferente[ab1: Abrigo, ab2: Abrigo, ad: Administrador]{
-	(ab1 != ab2) => (ad in ab1.administracao => ad !in ab2.administracao)
 }
 
 
-// Logica temporal
 fact traces {
 	init[first]
 	all pre: Time-last | let pos = pre.next |
-		some ab: Abrigo, an: Animal, c: Cliente |
-				addAnimalAbrigo[ab, an, pre, pos] or
+		some sd: SistemaDoar, al: Alerta, rg: Registro, ab: Abrigo, an: Animal, c: Cliente |
+				(addAnimalAbrigo[ab, an, pre, pos] and removeAlerta[sd, al, pre, pos]) or
 				addCliente[ab, c, pre, pos] or
-				adotaAnimal[ab, an, c, pre, pos] 
+				(doaAnimal[ab, an, c, pre, pos] and removeAnimalDoAbrigo[ab, an,  pre, pos]) or
+				addRegistro[sd, rg, pre, pos]
+				
 }
+
+//FUNCOES
+
+fun getAnimaisDoAbrigo[ab:Abrigo, t: Time]: set Animal{
+	ab.(animaisDoAbrigo.t)
+}
+
+
+fun getClientesDoAbrigo[ab:Abrigo, t: Time]: set Cliente{
+	ab.(clientes.t)
+}
+
+fun getAnimaisSemAbrigo[ab:Abrigo, t : Time] : set Animal {
+	Animal - ab.(animaisDoAbrigo.t)
+}
+
+// Logica temporal
 
 pred init[t: Time] {
 	one SistemaDoar
 	#Abrigo = 3
 	#Administrador = 3
+	no (SistemaDoar.registros).t
+	no (SistemaDoar.alertas).t
 	no (Abrigo.clientes).t
+	no animaisAdotados.t
 	no (Abrigo.animaisDoAbrigo).t
 }
+// PREDICADOS
 
-// Adicionar novo animal ao abrigo
 pred addAnimalAbrigo[ab: Abrigo, an: Animal, t, t': Time] {
-	an !in (ab.animaisDoAbrigo).t
-	(ab.animaisDoAbrigo).t' = (ab.animaisDoAbrigo).t + an
+	an !in getAnimaisDoAbrigo[ab, t]
+	getAnimaisDoAbrigo[ab, t'] = getAnimaisDoAbrigo[ab, t] + an
 } 
 
-// Adicionar novo cliente ao abrigo
 pred addCliente[ab: Abrigo, c: Cliente, t, t': Time] {
-	c !in (ab.clientes).t
-	(ab.clientes).t' = (ab.clientes).t + c
+	c !in getClientesDoAbrigo[ab, t]
+	getClientesDoAbrigo[ab, t'] = getClientesDoAbrigo[ab, t] + c
 }
 
-// Cliente adota animal
-pred adotaAnimal[ab: Abrigo, an: Animal, c: Cliente, t, t': Time] {
+pred doaAnimal[ab: Abrigo, an: Animal, c: Cliente, t, t': Time] {
 	an in (ab.animaisDoAbrigo).t
 	c in (ab.clientes).t
-	(ab.animaisDoAbrigo).t' = (ab.animaisDoAbrigo).t - an
 	(c.animaisAdotados).t' = (c.animaisAdotados).t + an
 }
 
-// PREDICADOS e FUNCOES
+pred removeAnimalDoAbrigo[ab: Abrigo, an: Animal, t, t': Time]{
+	an in getAnimaisDoAbrigo[ab, t]
+	getAnimaisDoAbrigo[ab, t'] = getAnimaisDoAbrigo[ab, t] - an
+}
+
+pred addRegistro[sd: SistemaDoar, rg:Registro, t, t': Time]{
+	rg not in (sd.registros).t
+	(sd.registros).t' = (sd.registros).t + rg
+
+}
+
+pred removeAlerta[sd: SistemaDoar, al: Alerta , t,t':Time]{
+	al in (sd.alertas).t
+	(sd.alertas).t' = (sd.alertas).t - al
+}
+
 
 
 // ASSERTS
@@ -182,15 +187,21 @@ assert todoAbrigoTemUmAdministrador {
 }
 
 assert todoAbrigoTemPeloMenosUmFuncionario {
-	all a:Abrigo | some a.funcionarios
+	all a:Abrigo | #a.funcionarios > 0
 }
 
-//check todoAbrigoTemUmAdministrador for 5
+assert animalAdotadoNaoPertenceANenhumAbrigo{
+	all a:Animal, t:Time, ab:Abrigo, c:Cliente | a in ab.(animaisDoAbrigo.t) => a not in c.(animaisAdotados.t)
+}
+
+check todoAbrigoTemUmAdministrador for 5
+check todoAbrigoTemPeloMenosUmFuncionario for 5
+check animalAdotadoNaoPertenceANenhumAbrigo for 5
 
 // main
 pred show[]{}
 
-run show for 5 but 10 Animal, 6 Funcionario
+run show for 5 but  3 Funcionario
 
 //assinaturas (conjuntos e relações)
 //fatos (invariantes)
