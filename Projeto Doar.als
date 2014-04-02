@@ -144,6 +144,7 @@ pred init[t: Time] {
 	no (Abrigo.clientes).t
 	no animaisAdotados.t
 	no (Abrigo.animaisDoAbrigo).t
+	no (Cliente.animaisAdotados).t
 }
 // PREDICADOS
 
@@ -157,11 +158,11 @@ pred addCliente[ab: Abrigo, c: Cliente, t, t': Time] {
 	getClientesDoAbrigo[ab, t'] = getClientesDoAbrigo[ab, t] + c
 }
 
+
 pred doaAnimal[ab: Abrigo, an: Animal, c: Cliente, t, t': Time] {
-	an in (ab.animaisDoAbrigo).t
-	an in (ab.animaisDoAbrigo).t'
-	c in (ab.clientes).t
-	c in (ab.clientes).t'
+	an in getAnimaisDoAbrigo[ab, t]
+	c in getClientesDoAbrigo[ab, t]
+	c in getClientesDoAbrigo[ab, t']
 	(c.animaisAdotados).t' = (c.animaisAdotados).t + an
 }
 
